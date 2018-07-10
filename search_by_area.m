@@ -60,6 +60,7 @@ addRequired(p,'DEM', @(x) isa(x,'GRIDobj'));
 addOptional(p,'stream', false, @(x) isa(x,'STREAMobj'));
 addOptional(p,'area', false, @(x) isa(x,'GRIDobj'));
 addOptional(p,'minarea_stream', 1e6, @(x) isscalar(x));
+%addOptional(p,'parallel',false, @(x) islogical(x));
 
 % Parse Inputs
 parse(p,search_init,min_area,max_area,DEM,varargin{:});
@@ -99,7 +100,12 @@ total_found = 0;
 % Snap points to stream
 [init_x,init_y] = ind2coord(DEM,search_init);
 [~,~,snapped] = snap2stream(S,init_x,init_y);
+
+update_indices = 1:round(length(search_init)/100):length(search_init);
 for i = 1:length(search_init)
+    if ismember(i,update_indices)
+       fprintf("Searching Outlet %d of %d...\n",i,length(search_init)); 
+    end
     this_init_point = snapped(i);
     [ix,db_area] = check_upstream(this_init_point,S_dem_ix,S_dem_ixc,IXgrid_bottomup,A,confluences,min_area,max_area);
     outlets{i} = ix;
